@@ -1,1 +1,9 @@
-*.*
+# current project exclude files or directories
+
+# front packages directory
+node_modules
+bower_components
+
+# common files
+*.md
+*.min.*
