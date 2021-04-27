@@ -4,6 +4,8 @@ import com.chequer.axboot.core.api.response.ApiResponse;
 import com.chequer.axboot.core.api.response.Responses;
 import com.chequer.axboot.core.controllers.BaseController;
 import com.chequer.axboot.core.parameter.RequestParams;
+import com.wordnik.swagger.annotations.ApiImplicitParam;
+import com.wordnik.swagger.annotations.ApiImplicitParams;
 import edu.axboot.domain.education.EducationTeachGrid;
 import edu.axboot.domain.education.EducationTeachGridService;
 import org.springframework.stereotype.Controller;
@@ -22,6 +24,12 @@ public class EducationTeachGridController extends BaseController {
     private EducationTeachGridService educationTeachGridService;
 
     @RequestMapping(method = RequestMethod.GET, produces = APPLICATION_JSON)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "companyNm", value = "회사명", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "ceo", value = "대표자", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "bizno", value = "사업자번호", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "useYn", value = "사용여부 (Y/N)", dataType = "String", paramType = "query")
+    })
     public Responses.ListResponse list(RequestParams<EducationTeachGrid> requestParams) {
         List<EducationTeachGrid> list = educationTeachGridService.gets(requestParams);
         return Responses.ListResponse.of(list);

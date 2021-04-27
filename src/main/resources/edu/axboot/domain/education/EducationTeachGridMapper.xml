@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.axboot.domain.education.EducationTeachGridMapper">
+
+    <select id="selectList" resultType="educationTeachGrid" parameterType="educationTeachGrid" statementType="PREPARED">
+        SELECT
+            ID AS id,
+            'mybatis : ' || COMPANY_NM AS companyNm,
+            CEO AS ceo,
+            BIZNO AS bizno,
+            TEL AS tel,
+            ZIP AS zip,
+            ADDRESS AS address,
+            ADDRESS_DETAIL AS addressDetail,
+            EMAIL AS email,
+            REMARK AS remark,
+            USE_YN AS useYn
+        FROM EDUCATION_TEACH
+        <where>
+            <if test="companyNm != null and companyNm != ''">
+                AND COMPANY_NM LIKE '%' || #{companyNm} || '%'
+            </if>
+            <if test="ceo != null and ceo != ''">
+                AND CEO LIKE '%' || #{ceo} || '%'
+            </if>
+            <if test="useYn != null and useYn != ''">
+                AND USE_YN = #{useYn}
+            </if>
+        </where>
+        order by companyNm asc
+    </select>
+
+</mapper>
