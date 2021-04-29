@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.axboot.domain.education.EducationTeachMapper">
+
+    <select id="selectList" resultType="educationTeach" parameterType="HashMap" statementType="PREPARED">
+        SELECT
+            ID AS id,
+            COMPANY_NM AS companyNm,
+            CEO AS ceo,
+            BIZNO AS bizno,
+            TEL AS tel,
+            ZIP AS zip,
+            ADDRESS AS address,
+            ADDRESS_DETAIL AS addressDetail,
+            EMAIL AS email,
+            REMARK AS remark,
+            USE_YN AS useYn
+        FROM EDUCATION_TEACH
+        <where>
+            <if test="companyNm != null and companyNm != ''">
+                AND COMPANY_NM LIKE '%' || #{companyNm} || '%'
+            </if>
+            <if test="ceo != null and ceo != ''">
+                AND CEO LIKE '%' || #{ceo} || '%'
+            </if>
+            <if test="bizno != null and bizno != ''">
+                AND BIZNO LIKE '%' || #{bizno} || '%'
+            </if>
+            <if test="useYn != null and useYn != ''">
+                AND USE_YN = #{useYn}
+            </if>
+            <if test="filter != null and filter != ''">
+                AND (
+                    COMPANY_NM LIKE '%' || #{filter} || '%' or
+                    CEO LIKE '%' || #{filter} || '%' or
+                    BIZNO LIKE '%' || #{filter} || '%' or
+                    USE_YN = #{filter}
+                )
+            </if>
+        </where>
+        ORDER BY COMPANY_NM ASC
+    </select>
+
+    <select id="selectOne" resultType="educationTeach" parameterType="Long" statementType="PREPARED">
+        SELECT
+            ID AS id,
+            COMPANY_NM AS companyNm,
+            CEO AS ceo,
+            BIZNO AS bizno,
+            TEL AS tel,
+            ZIP AS zip,
+            ADDRESS AS address,
+            ADDRESS_DETAIL AS addressDetail,
+            EMAIL AS email,
+            REMARK AS remark,
+            USE_YN AS useYn
+        FROM EDUCATION_TEACH
+        WHERE ID = #{id}
+    </select>
+
+    <select id="selectPage" resultType="educationTeach" parameterType="HashMap" statementType="PREPARED">
+        SELECT
+            ID AS id,
+            'mybatis : ' || COMPANY_NM AS companyNm,
+            CEO AS ceo,
+            BIZNO AS bizno,
+            TEL AS tel,
+            ZIP AS zip,
+            ADDRESS AS address,
+            ADDRESS_DETAIL AS addressDetail,
+            EMAIL AS email,
+            REMARK AS remark,
+            USE_YN AS useYn
+        FROM EDUCATION_TEACH
+        <where>
+            <if test="companyNm != null and companyNm != ''">
+                AND COMPANY_NM LIKE '%' || #{companyNm} || '%'
+            </if>
+            <if test="ceo != null and ceo != ''">
+                AND CEO LIKE '%' || #{ceo} || '%'
+            </if>
+            <if test="bizno != null and bizno != ''">
+                AND BIZNO LIKE '%' || #{bizno} || '%'
+            </if>
+            <if test="useYn != null and useYn != ''">
+                AND USE_YN = #{useYn}
+            </if>
+            <if test="filter != null and filter != ''">
+                AND (
+                COMPANY_NM LIKE '%' || #{filter} || '%' or
+                CEO LIKE '%' || #{filter} || '%' or
+                BIZNO LIKE '%' || #{filter} || '%' or
+                USE_YN = #{filter}
+                )
+            </if>
+        </where>
+        ORDER BY COMPANY_NM ASC
+        LIMIT #{pageNumber}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="int" parameterType="HashMap" statementType="PREPARED">
+        SELECT COUNT(*) FROM EDUCATION_TEACH
+        <where>
+            <if test="companyNm != null and companyNm != ''">
+                AND COMPANY_NM LIKE '%' || #{companyNm} || '%'
+            </if>
+            <if test="ceo != null and ceo != ''">
+                AND CEO LIKE '%' || #{ceo} || '%'
+            </if>
+            <if test="bizno != null and bizno != ''">
+                AND BIZNO LIKE '%' || #{bizno} || '%'
+            </if>
+            <if test="useYn != null and useYn != ''">
+                AND USE_YN = #{useYn}
+            </if>
+            <if test="filter != null and filter != ''">
+                AND (
+                    COMPANY_NM LIKE '%' || #{filter} || '%' or
+                    CEO LIKE '%' || #{filter} || '%' or
+                    BIZNO LIKE '%' || #{filter} || '%' or
+                    USE_YN = #{filter}
+                )
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="educationTeach" statementType="PREPARED">
+        INSERT INTO EDUCATION_TEACH (
+            COMPANY_NM,
+            CEO,
+            BIZNO,
+            TEL,
+            ZIP,
+            ADDRESS,
+            ADDRESS_DETAIL,
+            EMAIL,
+            REMARK,
+            USE_YN
+        ) VALUES (
+            #{companyNm},
+            #{ceo},
+            #{bizno},
+            #{tel},
+            #{zip},
+            #{address},
+            #{addressDetail},
+            #{email},
+            #{remark},
+            #{useYn}
+        )
+    </insert>
+
+    <update id="update" parameterType="educationTeach" statementType="PREPARED">
+        UPDATE EDUCATION_TEACH
+        SET
+            ID = #{id},
+            COMPANY_NM = #{companyNm},
+            CEO = #{ceo},
+            BIZNO = #{bizno},
+            TEL = #{tel},
+            ZIP = #{zip},
+            ADDRESS = #{address},
+            ADDRESS_DETAIL = #{addressDetail},
+            EMAIL = #{email},
+            REMARK = #{remark},
+            USE_YN = #{useYn}
+        WHERE ID = #{id}
+    </update>
+
+    <delete id="delete" parameterType="educationTeach" statementType="PREPARED">
+        DELETE FROM EDUCATION_TEACH
+        WHERE id = #{id}
+    </delete>
+
+
+</mapper>

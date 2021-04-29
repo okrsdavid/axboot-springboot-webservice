@@ -1,13 +1,19 @@
 var fnObj = {};
 var ACTIONS = axboot.actionExtend(fnObj, {
     PAGE_SEARCH: function (caller, act, data) {
-        var paramObj = caller.searchView.getData();
+        var paramObj = $.extend(caller.searchView.getData(), data, { pageSize: 2 });
 
-        //paramObj.type = 'myBatis';
+        var url;
+        if (caller.searchView.isPage.is(':checked')) {
+            url = '/api/v1/education/teachGrid/pages';
+        } else {
+            url = '/api/v1/education/teachGrid';
+        }
+
         paramObj.type = fnObj.type || '';
         axboot.ajax({
             type: 'GET',
-            url: '/api/v1/education/teachGrid',
+            url: url,
             data: paramObj,
             callback: function (res) {
                 caller.gridView01.setData(res);
@@ -19,8 +25,6 @@ var ACTIONS = axboot.actionExtend(fnObj, {
                 },
             },
         });
-
-        return false;
     },
     PAGE_SAVE: function (caller, act, data) {
         var saveList = [].concat(caller.gridView01.getData());
@@ -68,6 +72,9 @@ fnObj.pageResize = function () {};
 fnObj.pageButtonView = axboot.viewExtend({
     initView: function () {
         axboot.buttonClick(this, 'data-page-btn', {
+            searchPage: function () {
+                ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);
+            },
             search: function () {
                 ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);
             },
@@ -87,11 +94,17 @@ fnObj.searchView = axboot.viewExtend(axboot.searchView, {
     initView: function () {
         this.target = $(document['searchView0']);
         this.target.attr('onsubmit', 'return ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);');
-        this.companyNm = $('#companyNm');
-        this.ceo = $('#ceo');
-        this.bizno = $('#bizno');
+        this.target.on('keydown.search', 'input, .form-control', function (e) {
+            if (e.keyCode === 13) {
+                ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);
+            }
+        });
+
+        this.companyNm = $('.js-companyNm');
+        this.ceo = $('.js-ceo');
+        this.bizno = $('.js-bizno');
         this.useYn = $('.js-useYn');
-        this.useYnAx5 = $('[data-ax5select="useYn"]').ax5select({
+        this.useYnAx5 = $('.js-useYn-ax5select').ax5select({
             columnKeys: {
                 optionValue: 'value',
                 optionText: 'text',
@@ -102,16 +115,20 @@ fnObj.searchView = axboot.viewExtend(axboot.searchView, {
                 { value: 'N', text: '미사용' },
             ],
         });
+        this.useYnTag = $('.js-useYn-tag');
+        this.isPage = $('.js-isPage');
     },
     getData: function () {
         return {
+            pageType: this.pageType,
             pageNumber: this.pageNumber || 0,
             pageSize: this.pageSize || 0,
             companyNm: this.companyNm.val(),
             ceo: this.ceo.val(),
             bizno: this.bizno.val(),
             useYn: this.useYn.val(),
-            useYnAx5: ($('[data-ax5select="useYn"]').ax5select('getValue')[0] || {}).value,
+            useYnAx5: ($('.js-useYn-ax5select').ax5select('getValue')[0] || {}).value,
+            useYnTag: this.useYnTag.val(),
         };
     },
 });
@@ -124,6 +141,9 @@ fnObj.gridView01 = axboot.viewExtend(axboot.gridView, {
         var _this = this;
 
         this.target = axboot.gridBuilder({
+            onPageChange: function (pageNumber) {
+                ACTIONS.dispatch(ACTIONS.PAGE_SEARCH, { pageNumber: pageNumber });
+            },
             showRowSelector: true,
             frozenColumnIndex: 0,
             multipleSelect: true,
@@ -168,6 +188,6 @@ fnObj.gridView01 = axboot.viewExtend(axboot.gridView, {
         return list;
     },
     addRow: function () {
-        this.target.addRow({ __created__: true }, 'last');
+        this.target.addRow({ __created__: true, useYn: 'Y' }, 'last');
     },
 });
