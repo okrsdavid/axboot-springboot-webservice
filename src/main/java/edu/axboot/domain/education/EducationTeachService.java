@@ -1,16 +1,28 @@
 package edu.axboot.domain.education;
 
+import com.chequer.axboot.core.api.ApiException;
 import com.chequer.axboot.core.parameter.RequestParams;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.QueryResults;
 import edu.axboot.domain.BaseService;
+import edu.axboot.domain.file.CommonFile;
+import edu.axboot.domain.file.CommonFileService;
+import org.apache.commons.io.FileUtils;
+import org.jxls.reader.ReaderBuilder;
+import org.jxls.reader.ReaderConfig;
+import org.jxls.reader.XLSReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,15 +30,23 @@ import java.util.Map;
 
 @Service
 public class EducationTeachService extends BaseService<EducationTeach, Long> {
+    private static final Logger logger = LoggerFactory.getLogger(EducationTeachService.class);
+
+    @Value("${axboot.upload.repository}")
+    public String uploadRepository;
+
     private EducationTeachRepository educationTeachRepository;
 
     @Inject
     private EducationTeachMapper educationTeachMapper;
 
     @Inject
+    private CommonFileService commonFileService;
+
+    @Inject
     public EducationTeachService(EducationTeachRepository educationTeachRepository) {
         super(educationTeachRepository);
-        this.educationTeachRepository = this.educationTeachRepository;
+        this.educationTeachRepository = educationTeachRepository;
     }
 
     // JPA
@@ -67,12 +87,20 @@ public class EducationTeachService extends BaseService<EducationTeach, Long> {
         return targets;
     }
 
-    // QueryDSL
+    // ---------------------------------------------------------------------------
+    // [ region : QueryDsl 사용하는 셈플 ]
     public List<EducationTeach> getListUsingQueryDsl(RequestParams<EducationTeach> requestParams) {
         String companyNm = requestParams.getString("companyNm", "");
         String ceo = requestParams.getString("ceo", "");
         String bizno = requestParams.getString("bizno", "");
         String useYn = requestParams.getString("useYn", "");
+        String filter = requestParams.getFilter();
+
+        logger.info("회사명 : " + companyNm);
+        logger.info("대표자 : " + ceo);
+        logger.info("사업자번호 : " + bizno);
+        logger.info("사용여부 : " + useYn);
+        logger.info("검색 : " + filter);
 
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -87,6 +115,13 @@ public class EducationTeachService extends BaseService<EducationTeach, Long> {
         }
         if (isNotEmpty(useYn)) {
             builder.and(qEducationTeach.useYn.eq(useYn));
+        }
+
+        if (isNotEmpty(filter)) {
+            builder.and(qEducationTeach.companyNm.contains(filter)
+                    .or(qEducationTeach.ceo.like("%" + filter + "%"))
+                    .or(qEducationTeach.bizno.like(filter + "%"))
+            );
         }
 
         List<EducationTeach> list = select()
@@ -132,56 +167,129 @@ public class EducationTeachService extends BaseService<EducationTeach, Long> {
     }
 
     @Transactional
+    public void deleteUsingQueryDsl(List<Long> ids) {
+        for (Long id : ids) {
+            deleteUsingQueryDsl(id);
+        }
+    }
+
+    @Transactional
     public void deleteUsingQueryDsl(Long id) {
         delete(qEducationTeach).where(qEducationTeach.id.eq(id)).execute();
     }
+    // [ endregion : QueryDsl 사용하는 셈플 ] ---------------------------------------
 
-    // MyBatis
-    public List<EducationTeach> getListUsingMyBatis(RequestParams<EducationTeach> requestParams) {
+    // ---------------------------------------------------------------------------
+    // [ region : MyBatis 사용하는 셈플 ]
+    public Page<EducationTeach> getPageUsingMyBatis(RequestParams<EducationTeach> requestParams) {
         String companyNm = requestParams.getString("companyNm", "");
         String ceo = requestParams.getString("ceo", "");
         String bizno = requestParams.getString("bizno", "");
         String useYn = requestParams.getString("useYn", "");
+        String filter = requestParams.getFilter();
 
-        HashMap<String, Object> params = new HashMap<String, Object>();
+        if (!"".equals(useYn) && !"Y".equals(useYn) && !"N".equals(useYn)) {
+            throw new RuntimeException("Y 아니면 N 입력하세요~");
+        }
+
+        Pageable pageable = requestParams.getPageable();
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("pageNumber", pageable.getPageNumber());
+        params.put("pageSize", pageable.getPageSize());
         params.put("companyNm", companyNm);
         params.put("ceo", ceo);
         params.put("bizno", bizno);
         params.put("useYn", useYn);
+        params.put("filter", filter);
 
-        List<EducationTeach> list = educationTeachMapper.selectList(params);
-
-        return list;
+        List<EducationTeach> list = educationTeachMapper.selectPage(params);
+        int count = educationTeachMapper.selectCount(params);
+        Page<EducationTeach> page = new PageImpl<>(list, pageable, count);
+        return page;
     }
 
     public EducationTeach getOneUsingMyBatis(Long id) {
         return educationTeachMapper.selectOne(id);
     }
 
+    @Transactional
     public void saveUsingMyBatis(EducationTeach entity) {
         if (entity.getId() == null || entity.getId() == 0) {
             educationTeachMapper.insert(entity);
-        } else if (entity.isModified()) {
-            educationTeachMapper.update(entity);
         } else if (entity.isDeleted()) {
             educationTeachMapper.delete(entity.getId());
+        } else {
+            educationTeachMapper.update(entity);
         }
     }
 
+    @Transactional
+    public void deleteUsingMybatis(List<Long> ids) {
+        for (Long id : ids) {
+            deleteUsingMybatis(id);
+        }
+    }
+
+    @Transactional
     public void deleteUsingMybatis(Long id) {
         educationTeachMapper.delete(id);
     }
+    // [ endregion : MyBatis 사용하는 셈플 ] ---------------------------------------
 
-    public List<EducationTeach> getList(RequestParams<EducationTeach> requestParams) {
-        return getListUsingQueryDsl(requestParams);
+    @Transactional
+    public String uploadExcelData(Long fileId){
+        String resultMsg = "";
+
+        ReaderConfig.getInstance().setSkipErrors(true);
+
+        try {
+            XLSReader mainReader = ReaderBuilder.buildFromXML(new ClassPathResource("/excel/education_upload.xml").getInputStream());
+
+            List<EducationTeach> entities = new ArrayList();
+            Map beans = new HashMap();
+            beans.put("educationList", entities);
+
+            CommonFile commonFile = commonFileService.findOne(fileId);
+
+            String excelFile = uploadRepository + "/" + commonFile.getSaveNm();
+
+            File file = new File(excelFile);
+
+            mainReader.read(FileUtils.openInputStream(file), beans);
+
+            int rowIndex = 1;
+
+            for (EducationTeach entity : entities) {
+                if (StringUtils.isEmpty(entity.getCompanyNm())) {
+                    resultMsg = String.format("%d 번째 줄의 회사명이 비어있습니다.", rowIndex);
+                    throw new ApiException(String.format("%d 번째 줄의 회사명이 비어있습니다.", rowIndex));
+                }
+
+                if (StringUtils.isEmpty(entity.getCeo())) {
+                    resultMsg = String.format("%d 번째 줄의 대표자가 비어있습니다.", rowIndex);
+                    throw new ApiException(String.format("%d 번째 줄의 대표자가 비어있습니다.", rowIndex));
+                }
+
+                if (StringUtils.isEmpty(entity.getBizno())) {
+                    resultMsg = String.format("%d 번째 줄의 사업자번호가 비어있습니다.", rowIndex);
+                    throw new ApiException(String.format("%d 번째 줄의 사업자번호가 비어있습니다.", rowIndex));
+                }
+
+                if (StringUtils.isEmpty(entity.getUseYn())) {
+                    resultMsg = String.format("%d 번째 줄의 사용여부가 비어있습니다.", rowIndex);
+                    throw new ApiException(String.format("%d 번째 줄의 사용여부가 비어있습니다.", rowIndex));
+                }
+
+                save(entity);
+
+                rowIndex++;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultMsg;
     }
 
-    public Page<EducationTeach> getPage(RequestParams<EducationTeach> requestParams) {
-        List<EducationTeach> list = this.getList(requestParams);
-        Pageable pageable = requestParams.getPageable();
-        int start = (int)pageable.getOffset();
-        int end = (start + pageable.getPageSize() > list.size() ? list.size() : (start + pageable.getPageSize()));
-        Page<EducationTeach> pages = new PageImpl<>(list.subList(start, end), pageable, list.size());
-        return pages;
-    }
 }

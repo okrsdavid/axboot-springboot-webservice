@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
+
+    <!-- 파일경로 설정 -->
+    <property name="LOGS_ABSOLUTE_PATH" value="./logs" />
+
+    <!-- File Appender -->
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 파일명 설정 -->
+        <file>${LOGS_ABSOLUTE_PATH}/logback.log</file>
+        <!-- 출력패턴 설정-->
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}:%-3relative][%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+        <!-- Rolling 정책 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
+            <fileNamePattern>${LOGS_ABSOLUTE_PATH}/logback.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 파일당 최고 용량 kb, mb, gb -->
+                <maxFileSize>300kb</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거-->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
     <root level="ERROR">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ROLLING"/>
     </root>
 </included>

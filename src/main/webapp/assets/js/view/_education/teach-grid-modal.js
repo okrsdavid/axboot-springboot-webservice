@@ -1,7 +1,7 @@
 var fnObj = {};
 var ACTIONS = axboot.actionExtend(fnObj, {
     PAGE_SEARCH: function (caller, act, data) {
-        var paramObj = $.extend(caller.searchView.getData(), data, { pageSize: 2 });
+        var paramObj = $.extend(caller.searchView.getData(), data);
 
         axboot.ajax({
             type: 'GET',
@@ -17,27 +17,27 @@ var ACTIONS = axboot.actionExtend(fnObj, {
                 },
             },
         });
-    },
-    PAGE_SAVE: function (caller, act, data) {
-        var saveList = [].concat(caller.gridView01.getData());
-        saveList = saveList.concat(caller.gridView01.getData('deleted'));
 
-        axboot.ajax({
-            type: 'PUT',
-            url: '/api/v1/education/teachgrid',
-            data: JSON.stringify(saveList),
-            callback: function (res) {
-                ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);
-                axToast.push('저장 되었습니다');
+        return false;
+    },
+    MODAL_OPEN: function (caller, act, data) {
+        if (!data) data = {};
+
+        axboot.modal.open({
+            width: 780,
+            height: 450,
+            iframe: {
+                param: 'id=' + (data.id || ''),
+                url: 'teach-grid-modal-content.jsp',
+            },
+            header: { title: '모달등록' },
+            callback: function (data) {
+                if (data && data.dirty) {
+                    ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);
+                }
+                this.close();
             },
         });
-    },
-    ITEM_CLICK: function (caller, act, data) {},
-    ITEM_ADD: function (caller, act, data) {
-        caller.gridView01.addRow();
-    },
-    ITEM_DEL: function (caller, act, data) {
-        caller.gridView01.delRow('selected');
     },
     dispatch: function (caller, act, data) {
         var result = ACTIONS.exec(caller, act, data);
@@ -81,7 +81,7 @@ fnObj.pageButtonView = axboot.viewExtend({
 fnObj.searchView = axboot.viewExtend(axboot.searchView, {
     initView: function () {
         this.target = $(document['searchView0']);
-        this.target.attr('onsubmit', 'return false;');
+        this.target.attr('onsubmit', 'return ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);');
         this.target.on('keydown.search', 'input, .form-control', function (e) {
             if (e.keyCode === 13) {
                 ACTIONS.dispatch(ACTIONS.PAGE_SEARCH);
@@ -118,51 +118,33 @@ fnObj.gridView01 = axboot.viewExtend(axboot.gridView, {
             onPageChange: function (pageNumber) {
                 ACTIONS.dispatch(ACTIONS.PAGE_SEARCH, { pageNumber: pageNumber });
             },
-            showRowSelector: true,
+            showRowSelector: false,
             frozenColumnIndex: 0,
             multipleSelect: true,
             target: $('[data-ax5grid="grid-view-01"]'),
             columns: [
-                { key: 'companyNm', label: COL('company.name'), width: 250, align: 'left', editor: { type: 'text' } },
-                { key: 'ceo', label: COL('company.ceo'), width: 100, align: 'center', editor: { type: 'text' } },
-                { key: 'bizno', label: COL('company.bizno'), width: 100, align: 'center', formatter: 'bizno', editor: { type: 'text' } },
-                { key: 'tel', label: COL('company.tel'), width: 100, align: 'center', editor: { type: 'text' } },
-                { key: 'email', label: COL('company.email'), width: 100, align: 'center', editor: { type: 'text' } },
-                { key: 'useYn', label: COL('use.or.not'), width: 100, align: 'center', editor: 'useYn' },
-                { key: 'remark', label: '비고', width: 300, align: 'left', editor: { type: 'textarea' } },
+                { key: 'companyNm', label: COL('company.name'), width: 250, align: 'left' },
+                { key: 'ceo', label: COL('company.ceo'), width: 100, align: 'center' },
+                { key: 'bizno', label: COL('company.bizno'), width: 100, align: 'center', formatter: 'bizno' },
+                { key: 'tel', label: COL('company.tel'), width: 100, align: 'center' },
+                { key: 'email', label: COL('company.email'), width: 100, align: 'center' },
+                { key: 'useYn', label: COL('use.or.not'), width: 100, align: 'center' },
+                { key: 'remark', label: '비고', width: 300, align: 'left' },
             ],
             body: {
                 onClick: function () {
                     this.self.select(this.dindex, { selectedClear: true });
                 },
+                onDBLClick: function () {
+                    ACTIONS.dispatch(ACTIONS.MODAL_OPEN, this.item);
+                },
             },
         });
 
         axboot.buttonClick(this, 'data-grid-view-01-btn', {
-            add: function () {
-                ACTIONS.dispatch(ACTIONS.ITEM_ADD);
-            },
-            delete: function () {
-                ACTIONS.dispatch(ACTIONS.ITEM_DEL);
+            create: function () {
+                ACTIONS.dispatch(ACTIONS.MODAL_OPEN);
             },
         });
-    },
-    getData: function (_type) {
-        var list = [];
-        var _list = this.target.getList(_type);
-
-        if (_type == 'modified' || _type == 'deleted') {
-            list = ax5.util.filter(_list, function () {
-                //                delete this.deleted;
-                //                return this.key;
-                return this.id;
-            });
-        } else {
-            list = _list;
-        }
-        return list;
-    },
-    addRow: function () {
-        this.target.addRow({ __created__: true, useYn: 'Y' }, 'last');
     },
 });

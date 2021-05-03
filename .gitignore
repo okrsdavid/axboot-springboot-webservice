@@ -9,6 +9,7 @@ bower_components
 # Logs
 *.log
 **/[Ll]ogs/*.txt
+**/[Ll]ogs/*.zip
 
 # Generated files
 project.lock.json

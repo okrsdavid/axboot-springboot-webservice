@@ -41,6 +41,8 @@
                 header: false
             }
         };
+
+        axboot.def['dialogTitle'] = 'AxBoot Education';
     }
 
 

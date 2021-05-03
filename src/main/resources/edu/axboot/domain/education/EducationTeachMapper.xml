@@ -24,7 +24,7 @@
                 AND CEO LIKE '%' || #{ceo} || '%'
             </if>
             <if test="bizno != null and bizno != ''">
-                AND BIZNO LIKE '%' || #{bizno} || '%'
+                AND BIZNO  '%' || #{bizno} || '%'
             </if>
             <if test="useYn != null and useYn != ''">
                 AND USE_YN = #{useYn}
@@ -33,8 +33,7 @@
                 AND (
                     COMPANY_NM LIKE '%' || #{filter} || '%' or
                     CEO LIKE '%' || #{filter} || '%' or
-                    BIZNO LIKE '%' || #{filter} || '%' or
-                    USE_YN = #{filter}
+                    BIZNO LIKE #{filter} || '%'
                 )
             </if>
         </where>
@@ -61,7 +60,7 @@
     <select id="selectPage" resultType="educationTeach" parameterType="HashMap" statementType="PREPARED">
         SELECT
             ID AS id,
-            'mybatis : ' || COMPANY_NM AS companyNm,
+            COMPANY_NM AS companyNm,
             CEO AS ceo,
             BIZNO AS bizno,
             TEL AS tel,
@@ -87,15 +86,14 @@
             </if>
             <if test="filter != null and filter != ''">
                 AND (
-                COMPANY_NM LIKE '%' || #{filter} || '%' or
-                CEO LIKE '%' || #{filter} || '%' or
-                BIZNO LIKE '%' || #{filter} || '%' or
-                USE_YN = #{filter}
+                    COMPANY_NM LIKE '%' || #{filter} || '%' or
+                    CEO LIKE '%' || #{filter} || '%' or
+                    BIZNO LIKE #{filter} || '%'
                 )
             </if>
         </where>
         ORDER BY COMPANY_NM ASC
-        LIMIT #{pageNumber}, #{pageSize}
+        LIMIT (${pageNumber} * ${pageSize}), ${pageSize}
     </select>
 
     <select id="selectCount" resultType="int" parameterType="HashMap" statementType="PREPARED">
@@ -117,8 +115,7 @@
                 AND (
                     COMPANY_NM LIKE '%' || #{filter} || '%' or
                     CEO LIKE '%' || #{filter} || '%' or
-                    BIZNO LIKE '%' || #{filter} || '%' or
-                    USE_YN = #{filter}
+                    BIZNO LIKE #{filter} || '%'
                 )
             </if>
         </where>
@@ -171,6 +168,5 @@
         DELETE FROM EDUCATION_TEACH
         WHERE id = #{id}
     </delete>
-
 
 </mapper>
