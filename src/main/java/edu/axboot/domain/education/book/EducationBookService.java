@@ -15,8 +15,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-//public class EducationBookService extends BaseService<EducationBook, Long> {
-public class EducationBookService {
+public class EducationBookService extends BaseService<EducationBook, Long> {
     private final EducationBookRepository educationBookRepository;
 
     @Transactional
@@ -47,7 +46,6 @@ public class EducationBookService {
         return new EducationResponseDto(entity);
     }
 
-/*
     @Transactional(readOnly = true)
     public List<EducationListResponseDto> findBy(String companyNm, String ceo, String bizno) {
         BooleanBuilder builder = new BooleanBuilder();
@@ -73,5 +71,4 @@ public class EducationBookService {
                 .map(EducationListResponseDto::new)
                 .collect(Collectors.toList());
     }
-*/
 }
