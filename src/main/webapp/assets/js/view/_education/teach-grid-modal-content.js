@@ -61,8 +61,6 @@ var ACTIONS = axboot.actionExtend(fnObj, {
     },
 });
 
-var CODE = {};
-
 // fnObj 기본 함수 스타트와 리사이즈
 fnObj.pageStart = function () {
     var _this = this;
@@ -148,7 +146,7 @@ fnObj.formView01 = axboot.viewExtend(axboot.formView, {
     },
     initEvent: function () {
         axboot.buttonClick(this, 'data-form-view-01-btn', {
-            'form-clear': function () {
+            formClear: function () {
                 ACTIONS.dispatch(ACTIONS.FORM_CLEAR);
             },
         });

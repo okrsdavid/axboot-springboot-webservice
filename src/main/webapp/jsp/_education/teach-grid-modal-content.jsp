@@ -95,8 +95,10 @@
                                 </div>
                             </div>
                             <div data-ax-td style="width:50%">
-                                <div data-ax-td-label style="width:120px;"></div>
-                                <div data-ax-td-wrap></div>
+                                <div data-ax-td-label style="width:120px;">우편번호</div>
+                                <div data-ax-td-wrap>
+                                    <input type="text" name="zip" data-ax-path="zip" class="form-control" />
+                                </div>
                             </div>
                         </div>
 
@@ -104,11 +106,15 @@
                             <div data-ax-td style="width:100%">
                                 <div data-ax-td-label style="width:120px;">주소</div>
                                 <div data-ax-td-wrap>
-                                    <input type="text" name="zip" data-ax-path="zip" class="form-control inline-block W100" readonly="readonly" />
-                                    <button class="btn btn-default" data-form-view-01-btn="addressFind"><i class="cqc-magnifier"></i> 찾기</button>
-                                    <div class="H5"></div>
-                                    <input type="text" name="address" data-ax-path="address" class="form-control"  readonly="readonly"/>
-                                    <div class="H5"></div>
+                                    <input type="text" name="address" data-ax-path="address" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div data-ax-tr>
+                            <div data-ax-td style="width:100%">
+                                <div data-ax-td-label style="width:120px;">상세 주소</div>
+                                <div data-ax-td-wrap>
                                     <input type="text" name="addressDetail" data-ax-path="addressDetail" class="form-control" />
                                 </div>
                             </div>
